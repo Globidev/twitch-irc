@@ -2,15 +2,7 @@
 
 module Irc.Parser(
   parseMessage
-, Message (
-            PrivateMessage
-          , JoinMessage
-          , PartMessage
-          , ServerMessage
-          , JtvCommand
-          , JtvMode
-          , Ping
-          )
+, Message (..)
 ) where
 
 import Text.Parsec
