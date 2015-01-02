@@ -15,12 +15,13 @@ import Text.Printf (hPrintf)
 import Control.Monad (forever)
 
 import Irc.Parser
+import Irc.Twitch as Twitch
 
 type Client = Handle
 
-connect :: String -> Int -> IO Client
-connect server port = do
-  socket <- connectTo server (PortNumber (fromIntegral port))
+connect :: IO Client
+connect = do
+  socket <- connectTo Twitch.server (PortNumber (fromIntegral Twitch.port))
   hSetBuffering socket NoBuffering
   return socket
 
