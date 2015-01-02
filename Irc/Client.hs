@@ -38,7 +38,7 @@ joinChannel client channel handler = do
   sendCommand client "JOIN" ("#" ++ channel)
   forever $ do
     line <- hGetLine client
-    case parseMessage channel line of
+    case parseMessage line of
       Right msg -> handler channel msg client
       Left _ -> putStrLn $ "Error parsing:" ++ line
 

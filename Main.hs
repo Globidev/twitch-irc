@@ -24,5 +24,10 @@ main = do
 
 onMessage :: String -> Irc.Message -> Irc.Client -> IO ()
 onMessage channel msg client = case msg of
-  Irc.PrivateMessage sender content -> printf "%s: %s\n" sender content
-  Irc.Ping m -> sendPong client m
+  Irc.PrivateMessage _ sender content -> printf "[MSG] %s: %s\n" sender content
+  Irc.JoinMessage _ user              -> printf "[JOIN] %s\n" user
+  Irc.PartMessage _ user              -> printf "[PART] %s\n" user
+  Irc.ServerMessage _ code content    -> printf "[SERVER] %d: %s\n" code content
+  Irc.JtvCommand cmd content          -> printf "[JTV] %s: %s\n" cmd content
+  Irc.JtvMode _ mode user             -> printf "[MODE] %s: %s\n" user mode
+  Irc.Ping pong                       -> sendPong client pong
