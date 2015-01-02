@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module Irc.Parser(
   parseMessage
 , Message (
@@ -14,6 +16,8 @@ module Irc.Parser(
 import Text.Parsec
 import Text.ParserCombinators.Parsec (Parser)
 
+import Data.Typeable.Internal (Typeable)
+
 import Irc.Twitch as Twitch
 
 
@@ -28,7 +32,7 @@ data Message = PrivateMessage Channel User String
              | ServerMessage (Maybe Channel) Int String
              | JtvCommand Command String
              | JtvMode Channel Mode User
-             | Ping String deriving (Show)
+             | Ping String deriving (Show, Typeable)
 
 rest :: Parser String
 rest = manyTill anyChar eof
