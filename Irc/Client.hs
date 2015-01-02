@@ -1,5 +1,6 @@
 module Irc.Client(
   Client
+, MessageCallback
 , connect
 , authenticate
 , joinChannel
@@ -18,6 +19,7 @@ import Irc.Parser
 import Irc.Twitch as Twitch
 
 type Client = Handle
+type MessageCallback = String -> Message -> Client -> IO ()
 
 connect :: IO Client
 connect = do
@@ -33,7 +35,7 @@ authenticate client nick pass = do
   sendCommand client "PASS" pass
   sendCommand client "NICK" nick
 
-joinChannel :: Client -> String -> (String -> Message -> Client -> IO ()) -> IO ()
+joinChannel :: Client -> String -> MessageCallback -> IO ()
 joinChannel client channel handler = do
   sendCommand client "JOIN" ("#" ++ channel)
   forever $ do
