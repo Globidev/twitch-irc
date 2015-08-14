@@ -1,4 +1,4 @@
-module Irc.Twitch where
+module Twitch.Irc.Constants where
 
 server = "irc.twitch.tv"
 port = 6667

@@ -1,13 +1,11 @@
-module Main where
+module Main (main) where
 
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 
 import Control.Monad (when)
 
-import Language.Haskell.Interpreter
-
-import Irc.Client as Irc
+import qualified Twitch
 
 -- Next step is to use Twitch API to fetch this
 nick = "globinette"
@@ -18,26 +16,12 @@ main = do
   args <- getArgs
   when (length args >= 2) $ do
     let channel = (args !! 0)
-    let scriptFile = (args !! 1)
-    run channel scriptFile
+    let script = (args !! 1)
+    run channel script
 
 run :: String -> String -> IO ()
 run channel scriptFile = do
-  onMessage <- evalCallback scriptFile
-  client <- Irc.connect
-  Irc.authenticate client nick pass
-  Irc.joinChannel client channel onMessage
-
-evalCallback :: String -> IO (Irc.MessageCallback)
-evalCallback scriptFile = do
-  result <- runInterpreter $ do
-    loadModules [scriptFile]
-    setImports ["Prelude", "System.IO"]
-    setTopLevelModules["Script"]
-    interpret "onMessage" (as :: Irc.MessageCallback)
-  case result of
-    Right callback -> return callback
-    Left error -> do
-      putStrLn $ "error interpreting: " ++ scriptFile
-      print error
-      exitFailure
+  (stdin',stdout') <- undefined -- execVe, returning a handle to stdin of the program and stdout
+  client <- Twitch.connect
+  Twitch.authenticate client nick pass
+  Twitch.joinChannel client channel stdin'

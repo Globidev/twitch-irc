@@ -1,5 +1,5 @@
 name:                twitch-hs
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            Initial project template from stack
 description:         Please see README.md
 homepage:            http://github.com/Globidev/twitch-hs#readme
@@ -9,21 +9,31 @@ author:              Guillaume Depardon
 maintainer:          guillaume.depardon@outlook.com
 category:            Web
 build-type:          Simple
--- extra-source-files:
+extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Irc.Client
-                     , Irc.Twitch
-                     , Irc.Parser
+  exposed-modules:     Twitch
+  other-modules:       Twitch.Irc.Client
+                     , Twitch.Irc.Constants
+                     , Twitch.Irc.Parser
+                     , Twitch.Irc.Types
   build-depends:       base >= 4.7 && < 5
                      , network
                      , parsec
   default-language:    Haskell2010
 
-executable twitch-hs-exe
+executable twitch-app
   hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , twitch-hs
+  default-language:    Haskell2010
+
+executable twitch-hello-world
+  hs-source-dirs:      scripts/HelloWorld
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
