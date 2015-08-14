@@ -34,8 +34,9 @@ run channel scriptFile = do
 
 
 test = do
-  proc <- createProcess (proc "twitch-hello-world" []){ std_in = CreatePipe }
+  proc <- createProcess (proc "twitch-hello-world" []){ std_in = CreatePipe, std_out = Inherit}
   case proc of 
     (Just hin, Just hout, _, _) -> do
       print "ok"
+      hPrint hout "ok2"
     _ -> error ("twitch-hello-world" ++ " doesn't exist")
