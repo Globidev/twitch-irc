@@ -21,21 +21,13 @@ main = do
 run :: String -> String -> IO ()
 run channel scriptFile = do
   proc <- createProcess (proc scriptFile []){std_in = CreatePipe, std_out = Inherit}
-  -- todo: add std_out = CreatePipe to catch responses
-  -- also tweak below as: (Just hin, Just hout, _, _) -> do
   case proc of 
     (Just hin, _, _, _) -> do
-      print "ok"
+      print "script found"
       client <- Twitch.connect
       Twitch.authenticate client nick pass
       Twitch.joinChannel client channel hin
     _ -> error (scriptFile ++ " doesn't exist")
 
-
-test = do
-  proc <- createProcess (proc "twitch-hello-world" []){ std_in = CreatePipe, std_out = Inherit}
-  case proc of 
-    (Just hin, Just hout, _, _) -> do
-      print "ok"
-      hPrint hout "ok2"
-    _ -> error ("twitch-hello-world" ++ " doesn't exist")
+test :: IO ()
+test = run "lirik" "twitch-hello-world"
