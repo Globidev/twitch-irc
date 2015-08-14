@@ -3,6 +3,8 @@ module Main (main) where
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.Process
+import System.IO (hPrint)
+
 import Control.Monad (when)
 
 import qualified Twitch
@@ -17,11 +19,11 @@ main = do
   case args of
     channel:script:_ -> run channel script
     _ -> error "specify channel and script. example: twitch-app lirik twitch-hello-world"
-  
+
 run :: String -> String -> IO ()
 run channel scriptFile = do
   proc <- createProcess (proc scriptFile []){std_in = CreatePipe, std_out = Inherit}
-  case proc of 
+  case proc of
     (Just hin, _, _, _) -> do
       print "script found"
       client <- Twitch.connect
