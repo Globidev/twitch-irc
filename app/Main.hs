@@ -21,9 +21,11 @@ main = do
 
 run :: String -> String -> IO ()
 run channel scriptFile = do
-  proc <- createProcess (proc scriptFile []){std_in = CreatePipe } -- todo: add std_out = CreatePipe to catch responses
+  proc <- createProcess (proc scriptFile []){std_in = CreatePipe, std_out = Inherit}
+  -- todo: add std_out = CreatePipe to catch responses
+  -- also tweak below as: (Just hin, Just hout, _, _) -> do
   case proc of 
-    (Just hin, Just hout, _, _) -> do
+    (Just hin, _, _, _) -> do
       print "ok"
       client <- Twitch.connect
       Twitch.authenticate client nick pass
