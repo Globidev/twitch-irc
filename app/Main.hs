@@ -3,6 +3,7 @@ module Main (main) where
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.Process
+import System.IO (hPrint)
 
 import Control.Monad (when)
 import qualified Twitch
