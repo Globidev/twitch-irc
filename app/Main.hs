@@ -2,9 +2,9 @@ module Main (main) where
 
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
+import System.Process
 
 import Control.Monad (when)
-
 import qualified Twitch
 
 -- Next step is to use Twitch API to fetch this
@@ -21,7 +21,9 @@ main = do
 
 run :: String -> String -> IO ()
 run channel scriptFile = do
-  (stdin',stdout') <- undefined -- execVe, returning a handle to stdin of the program and stdout
+  (Just hin, Just hout, _, _) <- createProcess (proc "ls" []){ std_out = CreatePipe }
+  r <- createProcess (proc "ls" [])
   client <- Twitch.connect
   Twitch.authenticate client nick pass
-  Twitch.joinChannel client channel stdin'
+  Twitch.joinChannel client channel hin
+  
