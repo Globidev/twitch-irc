@@ -11,7 +11,7 @@ import Irc.Client as Irc
 
 -- Next step is to use Twitch API to fetch this
 nick = "globinette"
-pass = "oauth:yw9vubelhjv98rlufly6vsbrt7e647"
+pass = "oauth:c6gnjdi9tmqysf4edozkim16l77605"
 
 main :: IO ()
 main = do
