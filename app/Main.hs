@@ -1,13 +1,11 @@
-module Main where
+module Main (main) where
 
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
+import System.Process
 
 import Control.Monad (when)
-
-import Language.Haskell.Interpreter
-
-import Irc.Client as Irc
+import qualified Twitch
 
 -- Next step is to use Twitch API to fetch this
 nick = "globinette"
@@ -18,26 +16,27 @@ main = do
   args <- getArgs
   when (length args >= 2) $ do
     let channel = (args !! 0)
-    let scriptFile = (args !! 1)
-    run channel scriptFile
+    let script = (args !! 1)
+    run channel script
 
 run :: String -> String -> IO ()
 run channel scriptFile = do
-  onMessage <- evalCallback scriptFile
-  client <- Irc.connect
-  Irc.authenticate client nick pass
-  Irc.joinChannel client channel onMessage
+  proc <- createProcess (proc scriptFile []){std_in = CreatePipe, std_out = Inherit}
+  -- todo: add std_out = CreatePipe to catch responses
+  -- also tweak below as: (Just hin, Just hout, _, _) -> do
+  case proc of 
+    (Just hin, _, _, _) -> do
+      print "ok"
+      client <- Twitch.connect
+      Twitch.authenticate client nick pass
+      Twitch.joinChannel client channel hin
+    _ -> error (scriptFile ++ " doesn't exist")
 
-evalCallback :: String -> IO (Irc.MessageCallback)
-evalCallback scriptFile = do
-  result <- runInterpreter $ do
-    loadModules [scriptFile]
-    setImports ["Prelude", "System.IO"]
-    setTopLevelModules["Script"]
-    interpret "onMessage" (as :: Irc.MessageCallback)
-  case result of
-    Right callback -> return callback
-    Left error -> do
-      putStrLn $ "error interpreting: " ++ scriptFile
-      print error
-      exitFailure
+
+test = do
+  proc <- createProcess (proc "twitch-hello-world" []){ std_in = CreatePipe, std_out = Inherit}
+  case proc of 
+    (Just hin, Just hout, _, _) -> do
+      print "ok"
+      hPrint hout "ok2"
+    _ -> error ("twitch-hello-world" ++ " doesn't exist")

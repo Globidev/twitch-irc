@@ -1,6 +1,5 @@
-module Irc.Client(
+module Twitch.Irc.Client(
   Client
-, MessageCallback
 , connect
 , authenticate
 , joinChannel
@@ -10,16 +9,13 @@ module Irc.Client(
 
 import Network (connectTo, PortID(PortNumber))
 import System.IO (Handle, hSetBuffering, BufferMode(NoBuffering), hGetLine)
-
 import Text.Printf (hPrintf)
-
 import Control.Monad (forever)
+import Twitch.Irc.Parser
+import Twitch.Irc.Constants as Twitch
+import Twitch.Irc.Types
+import System.IO
 
-import Irc.Parser
-import Irc.Twitch as Twitch
-
-type Client = Handle
-type MessageCallback = String -> Message -> Client -> IO ()
 
 connect :: IO Client
 connect = do
@@ -35,13 +31,13 @@ authenticate client nick pass = do
   sendCommand client "PASS" pass
   sendCommand client "NICK" nick
 
-joinChannel :: Client -> String -> MessageCallback -> IO ()
-joinChannel client channel handler = do
+joinChannel :: Client -> String -> Handle -> IO ()
+joinChannel client channel handle = do
   sendCommand client "JOIN" ("#" ++ channel)
   forever $ do
     line <- hGetLine client
     case parseMessage line of
-      Right msg -> handler channel msg client
+      Right msg -> hPrint handle (Input channel msg)
       Left _ -> putStrLn $ "Error parsing:" ++ line
 
 sendMessage :: Client -> String -> String -> IO ()
