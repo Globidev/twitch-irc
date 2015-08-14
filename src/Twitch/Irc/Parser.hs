@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Irc.Parser(
+module Twitch.Irc.Parser(
   parseMessage
 , Message (..)
 ) where
@@ -10,21 +10,9 @@ import Text.ParserCombinators.Parsec (Parser)
 
 import Data.Typeable.Internal (Typeable)
 
-import Irc.Twitch as Twitch
+import Twitch.Irc.Constants as Twitch
+import Twitch.Irc.Types
 
-
-type Channel = String
-type User = String
-type Command = String
-type Mode = String
-
-data Message = PrivateMessage Channel User String
-             | JoinMessage Channel User
-             | PartMessage Channel User
-             | ServerMessage (Maybe Channel) Int String
-             | JtvCommand Command String
-             | JtvMode Channel Mode User
-             | Ping String deriving (Show, Typeable)
 
 rest :: Parser String
 rest = manyTill anyChar eof
