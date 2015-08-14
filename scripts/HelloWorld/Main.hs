@@ -10,7 +10,8 @@ main :: IO ()
 main = do
   a <- newIORef (0::Int)
   forever $ do
-     Input channel msg <- read <$> getLine 
+     Input channel msg <- read <$> getLine
+     print ("received: " ++ (show channel) ++ " " ++ (show msg))
      case msg of
         PrivateMessage _ sender content -> printf "[MSG] %s: %s\n" sender content
         JoinMessage _ user              -> do
