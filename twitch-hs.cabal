@@ -15,7 +15,10 @@ cabal-version:       >=1.10
 
 executable twitch-hs
   main-is:             Main.hs
-  -- other-modules:
+  other-modules:
+                       Irc.Client,
+                       Irc.Parser,
+                       Irc.Twitch
   -- other-extensions:
   build-depends:       base,
                        network,
