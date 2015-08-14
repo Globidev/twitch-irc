@@ -30,3 +30,10 @@ run channel scriptFile = do
       Twitch.joinChannel client channel hin
     _ -> error (scriptFile ++ " doesn't exist")
 
+
+test = do
+  proc <- createProcess (proc "twitch-hello-world" []){ std_in = CreatePipe }
+  case proc of 
+    (Just hin, Just hout, _, _) -> do
+      print "ok"
+    _ -> error ("twitch-hello-world" ++ " doesn't exist")
