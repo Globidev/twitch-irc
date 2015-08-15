@@ -3,7 +3,7 @@ module Main (main) where
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.Process
-import System.IO (hPrint)
+import System.IO (hPrint, hSetBuffering, BufferMode(..))
 
 import Control.Monad (when)
 
@@ -26,6 +26,7 @@ run channel scriptFile = do
   case proc of
     (Just hin, _, _, _) -> do
       print "script found"
+      hSetBuffering hin NoBuffering
       client <- Twitch.connect
       Twitch.authenticate client nick pass
       Twitch.joinChannel client channel hin
