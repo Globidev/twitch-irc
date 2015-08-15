@@ -2,7 +2,10 @@ module Main (main) where
 
 import System.Environment (getArgs)
 import System.Process
-import System.IO (hPrint, hSetBuffering, BufferMode(..))
+import System.IO (Handle, hPrint, hSetBuffering, BufferMode(..), hGetLine)
+
+import Control.Concurrent (forkIO)
+import Control.Monad (forever)
 
 import qualified Twitch
 
@@ -19,15 +22,27 @@ main = do
 
 run :: String -> String -> IO ()
 run channel scriptFile = do
-  proc <- createProcess (proc scriptFile []){std_in = CreatePipe, std_out = Inherit}
+  proc <- createProcess (proc scriptFile []) {
+      std_in = CreatePipe
+    , std_out = Inherit
+    , std_err = CreatePipe
+  }
   case proc of
-    (Just hin, _, _, _) -> do
+    (Just hin, _, Just herr, _) -> do
       print "Script started"
       hSetBuffering hin NoBuffering
       client <- Twitch.connect
+      forkIO $ handleActions herr client
       Twitch.authenticate client nick pass
       Twitch.joinChannel client channel hin
     _ -> error "I don't think we can reach this, createProcess throws on error"
+
+handleActions :: Handle -> Twitch.Client -> IO ()
+handleActions handle client = forever $ do
+  Twitch.Output action <- read <$> hGetLine handle
+  case action of
+    Twitch.SendPong pong                -> Twitch.sendPong client pong
+    Twitch.SendMessage channel message  -> Twitch.sendMessage client channel message
 
 test :: IO ()
 test = run "lirik" "twitch-hello-world"

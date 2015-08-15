@@ -6,8 +6,11 @@ import Control.Monad (forever)
 import Data.IORef
 import Text.Printf (printf)
 
+import System.IO (hPrint, hSetBuffering, BufferMode(..), stderr)
+
 main :: IO ()
 main = do
+  hSetBuffering stderr NoBuffering
   a <- newIORef (0::Int)
   forever $ do
      Input channel msg <- read <$> getLine
@@ -21,4 +24,4 @@ main = do
         ServerMessage _ code content    -> printf "[SERVER] %d: %s\n" code content
         JtvCommand cmd content          -> printf "[JTV] %s: %s\n" cmd content
         JtvMode _ mode user             -> printf "[MODE] %s: %s\n" user mode
-        Ping pong                       -> print "pong"
+        Ping pong                       -> print "pong" >> hPrint stderr (Output (SendPong pong))

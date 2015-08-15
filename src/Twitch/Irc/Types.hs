@@ -6,9 +6,12 @@ import System.IO (Handle)
 
 data Input = Input Channel Message deriving (Show, Read, Eq)
 data Output = Output Action deriving (Show, Read, Eq)
-data Action = None deriving (Show, Read, Eq)
+data Action
+  = SendMessage Channel String
+  | SendPong String deriving (Show, Read, Eq)
 
-data Message 
+
+data Message
   = PrivateMessage Channel User String
   | JoinMessage Channel User
   | PartMessage Channel User
