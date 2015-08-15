@@ -1,11 +1,8 @@
 module Main (main) where
 
 import System.Environment (getArgs)
-import System.Exit (exitFailure)
 import System.Process
 import System.IO (hPrint, hSetBuffering, BufferMode(..))
-
-import Control.Monad (when)
 
 import qualified Twitch
 
@@ -25,12 +22,12 @@ run channel scriptFile = do
   proc <- createProcess (proc scriptFile []){std_in = CreatePipe, std_out = Inherit}
   case proc of
     (Just hin, _, _, _) -> do
-      print "script found"
+      print "Script started"
       hSetBuffering hin NoBuffering
       client <- Twitch.connect
       Twitch.authenticate client nick pass
       Twitch.joinChannel client channel hin
-    _ -> error (scriptFile ++ " doesn't exist")
+    _ -> error "I don't think we can reach this, createProcess throws on error"
 
 test :: IO ()
 test = run "lirik" "twitch-hello-world"

@@ -11,7 +11,6 @@ main = do
   a <- newIORef (0::Int)
   forever $ do
      Input channel msg <- read <$> getLine
-     print ("received: " ++ (show channel) ++ " " ++ (show msg))
      case msg of
         PrivateMessage _ sender content -> printf "[MSG] %s: %s\n" sender content
         JoinMessage _ user              -> do
@@ -23,4 +22,3 @@ main = do
         JtvCommand cmd content          -> printf "[JTV] %s: %s\n" cmd content
         JtvMode _ mode user             -> printf "[MODE] %s: %s\n" user mode
         Ping pong                       -> print "pong"
-
