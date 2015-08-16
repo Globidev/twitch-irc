@@ -17,7 +17,8 @@ data Message
   | Ping String deriving (Show, Read, Eq, Typeable)
 
 data Action
-  = SendMessage Channel String deriving (Show, Read, Eq)
+  = SendMessage Channel String
+  | Log String deriving (Show, Read, Eq)
 
 type Channel = String
 type User = String

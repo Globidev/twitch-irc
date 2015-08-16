@@ -2,7 +2,7 @@ module Main (main) where
 
 import System.Environment (getArgs)
 import System.Process
-import System.IO (Handle, hPrint, hSetBuffering, BufferMode(..), hGetLine)
+import System.IO (Handle, hSetBuffering, BufferMode(..), hGetLine)
 
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
@@ -21,27 +21,27 @@ main = do
     _ -> error "specify channel and script. example: twitch-app lirik twitch-hello-world"
 
 run :: String -> String -> IO ()
-run channel scriptFile = do
-  proc <- createProcess (proc scriptFile []) {
+run channel script = do
+  proc <- createProcess (proc script []) {
       std_in = CreatePipe
-    , std_out = Inherit
-    , std_err = CreatePipe
+    , std_out = CreatePipe
   }
   case proc of
-    (Just hin, _, Just herr, _) -> do
-      print "Script started"
-      hSetBuffering hin NoBuffering
+    (Just hWriteTo, Just hReadFrom, _, _) -> do
+      print $ "Script started: " ++ script
+      hSetBuffering hWriteTo NoBuffering
       client <- Twitch.connect
-      forkIO $ handleActions herr client
+      forkIO $ processActions script hReadFrom client
       Twitch.authenticate client nick pass
-      Twitch.joinChannel client channel hin
+      Twitch.joinChannel client channel hWriteTo
     _ -> error "I don't think we can reach this, createProcess throws on error"
 
-handleActions :: Handle -> Twitch.Client -> IO ()
-handleActions handle client = forever $ do
+processActions :: String -> Handle -> Twitch.Client -> IO ()
+processActions name handle client = forever $ do
   Twitch.Output action <- read <$> hGetLine handle
   case action of
-    Twitch.SendMessage channel message  -> Twitch.sendMessage client channel message
+    Twitch.SendMessage channel message -> Twitch.sendMessage client channel message
+    Twitch.Log message -> putStrLn $ "<" ++ name ++ "> " ++ message
 
 test :: IO ()
 test = run "lirik" "twitch-hello-world"

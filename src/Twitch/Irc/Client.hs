@@ -39,7 +39,7 @@ joinChannel client channel handle = do
     case parseMessage line of
       Right (Ping pong) -> sendPong client pong
       Right msg -> hPrint handle (Input channel msg)
-      Left _ -> putStrLn $ "Error parsing:" ++ line
+      Left _ -> hPrint stderr ("Error parsing:" ++ line)
 
 sendMessage :: Client -> String -> String -> IO ()
 sendMessage client channel msg = do
