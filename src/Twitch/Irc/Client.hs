@@ -37,6 +37,7 @@ joinChannel client channel handle = do
   forever $ do
     line <- hGetLine client
     case parseMessage line of
+      Right (Ping pong) -> sendPong client pong
       Right msg -> hPrint handle (Input channel msg)
       Left _ -> putStrLn $ "Error parsing:" ++ line
 

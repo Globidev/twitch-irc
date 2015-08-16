@@ -6,10 +6,6 @@ import System.IO (Handle)
 
 data Input = Input Channel Message deriving (Show, Read, Eq)
 data Output = Output Action deriving (Show, Read, Eq)
-data Action
-  = SendMessage Channel String
-  | SendPong String deriving (Show, Read, Eq)
-
 
 data Message
   = PrivateMessage Channel User String
@@ -19,6 +15,9 @@ data Message
   | JtvCommand Command String
   | JtvMode Channel Mode User
   | Ping String deriving (Show, Read, Eq, Typeable)
+
+data Action
+  = SendMessage Channel String deriving (Show, Read, Eq)
 
 type Channel = String
 type User = String

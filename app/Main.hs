@@ -41,7 +41,6 @@ handleActions :: Handle -> Twitch.Client -> IO ()
 handleActions handle client = forever $ do
   Twitch.Output action <- read <$> hGetLine handle
   case action of
-    Twitch.SendPong pong                -> Twitch.sendPong client pong
     Twitch.SendMessage channel message  -> Twitch.sendMessage client channel message
 
 test :: IO ()
