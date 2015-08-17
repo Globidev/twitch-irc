@@ -1,31 +1,29 @@
 module Main (main) where
 
+import Prelude hiding (log)
+import System.IO (hSetBuffering, BufferMode(..), stdout)
 import Control.Monad (forever, when)
 import Control.Concurrent (threadDelay)
-
 import Data.List (intercalate)
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Prelude hiding (log)
-import System.IO (hSetBuffering, BufferMode(..), stdout)
-
 import Twitch
 import qualified X11 as X
 
-inputMap :: Map String [Int]
-inputMap = Map.fromList
-  [ ("left",       [0xff51])
-  , ("up",         [0xff52])
-  , ("right",      [0xff53])
+inputs :: [(String, [X.KeyCode])]
+inputs =
+  [ ("up",         [0xff52])
   , ("down",       [0xff54])
-  , ("enter",      [0xff0d])
-  , ("down+left",  [0xff54, 0xff51])
-  , ("up+left",    [0xff52, 0xff51])
-  , ("left+right", [0xff51, 0xff53])
-  , ("up+right",   [0xff52, 0xff53])
-  , ("down+right", [0xff54, 0xff53])
+  , ("left",       [0xff51])
+  , ("right",      [0xff53])
   , ("up+down",    [0xff52, 0xff54])
+  , ("up+left",    [0xff52, 0xff51])
+  , ("up+right",   [0xff52, 0xff53])
+  , ("down+left",  [0xff54, 0xff51])
+  , ("down+right", [0xff54, 0xff53])
+  , ("left+right", [0xff51, 0xff53])
+  , ("enter",      [0xff0d])
   ]
 
 main :: IO ()
@@ -43,13 +41,10 @@ main = do
     Input channel msg <- read <$> getLine
     case msg of
       PrivateMessage _ sender content -> do
-        case Map.lookup content inputMap of
-          Just keyCodes -> do
-            X.sendInputs display window root keyCodes
-          Nothing -> do
-            when (content == "!commands") $ do
-              let commandsText = (intercalate "  /  " (Map.keys inputMap))
-              chat channel commandsText
+        let match = Map.lookup content (Map.fromList inputs)
+        case match of
+          Just keyCodes -> X.sendInputs display window root keyCodes
+          Nothing       -> checkCommands channel content
       _ -> return ()
 
   X.closeDisplay display
@@ -60,3 +55,9 @@ log msg = putStrLn $ show $ Output $ Log msg
 
 chat :: String -> String -> IO ()
 chat channel msg = putStrLn $ show $ Output $ SendMessage channel msg
+
+checkCommands :: String -> String -> IO ()
+checkCommands channel message =
+  case message of
+    "!commands" -> chat channel $ intercalate "  |  " (map fst inputs)
+    _           -> return ()
