@@ -41,7 +41,7 @@ privateMessage = do
   chan <- channel
   space >> char ':'
   content <- rest
-  return $ PrivateMessage chan user content
+  return $ PrivateMessage chan user (init content)
 
 joinMessage :: Parser Message
 joinMessage = do
