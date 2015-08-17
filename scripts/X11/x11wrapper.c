@@ -3,6 +3,7 @@
 Status sendInput(Display * display, Window win, Window root, int pressed, int keycode) {
   XKeyEvent event;
 
+  event.type        = (pressed ? KeyPress : KeyRelease);
   event.display     = display;
   event.window      = win;
   event.root        = root;
@@ -16,9 +17,5 @@ Status sendInput(Display * display, Window win, Window root, int pressed, int ke
   event.keycode     = XKeysymToKeycode(display, keycode);
   event.state       = 0; // modifiers
 
-  event.type        = (pressed ? KeyPress : KeyRelease);
-  Status press      = XSendEvent(display, win, True, KeyPressMask, (XEvent*)&event);
-  XFlush(display);
-
-  return press;
+  return XSendEvent(display, win, True, KeyPressMask, (XEvent*)&event);
 }
