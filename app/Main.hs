@@ -18,7 +18,7 @@ main = do
   args <- getArgs
   case args of
     channel:script:_ -> run channel script
-    _ -> error "specify channel and script. example: twitch-app lirik twitch-hello-world"
+    _ -> error "specify channel and script. example: twitch-app <channel> twitch-echo"
 
 run :: String -> String -> IO ()
 run channel script = do
@@ -44,4 +44,4 @@ processActions name handle client = forever $ do
     Twitch.Log message -> putStrLn $ "<" ++ name ++ "> " ++ message
 
 test :: IO ()
-test = run "lirik" "twitch-hello-world"
+test = run "lirik" "twitch-echo"
