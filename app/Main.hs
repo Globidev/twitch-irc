@@ -22,19 +22,16 @@ main = do
 
 run :: String -> String -> [String] -> IO ()
 run channel script args = do
-  proc <- createProcess (proc script args) {
-      std_in = CreatePipe
-    , std_out = CreatePipe
-  }
-  case proc of
-    (Just hWriteTo, Just hReadFrom, _, _) -> do
-      print $ "Script started: " ++ script
-      hSetBuffering hWriteTo NoBuffering
-      client <- Twitch.connect
-      forkIO $ processActions script hReadFrom client
-      Twitch.authenticate client nick pass
-      Twitch.joinChannel client channel hWriteTo
-    _ -> error "I don't think we can reach this, createProcess throws on error"
+  (Just hWriteTo, Just hReadFrom, _, _) <- createProcess (proc script args)
+                                           { std_in = CreatePipe
+                                           , std_out = CreatePipe
+                                           }
+  print $ "Script started: " ++ script
+  hSetBuffering hWriteTo NoBuffering
+  client <- Twitch.connect
+  forkIO $ processActions script hReadFrom client
+  Twitch.authenticate client nick pass
+  Twitch.joinChannel client channel hWriteTo
 
 processActions :: String -> Handle -> Twitch.Client -> IO ()
 processActions name handle client = forever $ do
