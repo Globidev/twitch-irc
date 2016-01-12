@@ -30,6 +30,7 @@ authenticate :: Client -> String -> String -> IO ()
 authenticate client nick pass = do
   sendCommand client "PASS" pass
   sendCommand client "NICK" nick
+  sendCommand client "CAP REQ" ":twitch.tv/tags"
 
 joinChannel :: Client -> String -> Handle -> IO ()
 joinChannel client channel handle = do

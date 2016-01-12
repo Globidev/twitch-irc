@@ -13,6 +13,9 @@ import Data.Typeable.Internal (Typeable)
 import Twitch.Irc.Constants as Twitch
 import Twitch.Irc.Types
 
+import Debug.Trace (trace)
+import Data.Maybe
+import Data.Map (fromList)
 
 rest :: Parser String
 rest = manyTill anyChar eof
@@ -34,14 +37,27 @@ commandPrefix = do
   char '@' >> nickname >> char '.' >> string Twitch.tmi >> space
   return user
 
+privmsgTag :: Parser (String, String)
+privmsgTag = do
+  key <- manyTill anyChar (char '=')
+  value <- manyTill anyChar (char ';' <|> char ' ')
+  return (key, value)
+
+privmsgTags :: Parser PrivateMessageTags
+privmsgTags = do
+  char '@'
+  tags <- many (try privmsgTag)
+  return $ fromList tags
+
 privateMessage :: Parser Message
 privateMessage = do
+  mbTags <- optionMaybe privmsgTags
   user <- commandPrefix
   string "PRIVMSG" >> space
   chan <- channel
   space >> char ':'
   content <- rest
-  return $ PrivateMessage chan user (init content)
+  return $ PrivateMessage chan user (init content) mbTags
 
 joinMessage :: Parser Message
 joinMessage = do

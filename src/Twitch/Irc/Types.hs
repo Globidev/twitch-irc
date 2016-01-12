@@ -2,13 +2,15 @@
 module Twitch.Irc.Types where
 
 import Data.Typeable.Internal (Typeable)
+import Data.Map (Map)
+
 import System.IO (Handle)
 
 data Input = Input Channel Message deriving (Show, Read, Eq)
 data Output = Output Action deriving (Show, Read, Eq)
 
 data Message
-  = PrivateMessage Channel User String
+  = PrivateMessage Channel User String (Maybe PrivateMessageTags)
   | JoinMessage Channel User
   | PartMessage Channel User
   | ServerMessage (Maybe Channel) Int String
@@ -25,3 +27,5 @@ type User = String
 type Command = String
 type Mode = String
 type Client = Handle
+
+type PrivateMessageTags = Map String String

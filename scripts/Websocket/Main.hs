@@ -28,11 +28,13 @@ data ServerState = ServerState
 data IRCMessage = IRCMessage
   { sender  :: String
   , content :: String
+  , tags    :: Maybe PrivateMessageTags
   } deriving Show
 
 instance ToJSON IRCMessage where
   toJSON IRCMessage{..} = object [ "sender" .= sender
                                  , "content" .= content
+                                 , "tags" .= tags
                                  ]
 
 newServerState :: ServerState
@@ -65,7 +67,8 @@ broadcastMessages :: MVar ServerState -> IO ()
 broadcastMessages state = forever $ do
   Input _ message <- read <$> getLine
   case message of
-    PrivateMessage _ sender content -> broadcast (IRCMessage sender content) state
+    PrivateMessage _ sender content tags ->
+      broadcast (IRCMessage sender content tags) state
     _ -> return ()
 
 broadcast :: ToJSON a => a -> MVar ServerState -> IO ()

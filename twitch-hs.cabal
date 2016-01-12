@@ -22,6 +22,7 @@ library
   build-depends:       base
                      , network
                      , parsec
+                     , containers
   default-language:    Haskell2010
 
 executable twitch-app

@@ -13,12 +13,12 @@ main = do
   forever $ do
     Input channel msg <- read <$> getLine
     case msg of
-      PrivateMessage _ sender content -> log $ "[MSG] " ++ sender ++ ": " ++ content
-      JoinMessage _ user              -> log $ "[JOIN] " ++ user
-      PartMessage _ user              -> log $ "[PART] " ++ user
-      ServerMessage _ code content    -> log $ "[SERVER] " ++ (show code) ++ ": " ++ content
-      JtvCommand cmd content          -> log $ "[JTV] " ++ cmd ++ ": " ++ content
-      JtvMode _ mode user             -> log $ "[MODE] " ++ user ++ ": " ++ mode
+      PrivateMessage _ sender content _ -> log $ "[MSG] " ++ sender ++ ": " ++ content
+      JoinMessage _ user                -> log $ "[JOIN] " ++ user
+      PartMessage _ user                -> log $ "[PART] " ++ user
+      ServerMessage _ code content      -> log $ "[SERVER] " ++ (show code) ++ ": " ++ content
+      JtvCommand cmd content            -> log $ "[JTV] " ++ cmd ++ ": " ++ content
+      JtvMode _ mode user               -> log $ "[MODE] " ++ user ++ ": " ++ mode
 
 log :: String -> IO ()
 log message = putStrLn $ show $ Output $ Log message
