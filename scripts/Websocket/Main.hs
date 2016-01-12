@@ -5,6 +5,8 @@ module Main (main) where
 
 import Twitch
 
+import System.Environment (getArgs)
+
 import Control.Monad (forever, forM_)
 import Control.Concurrent (forkIO, MVar, newMVar, readMVar, modifyMVar_)
 import Control.Exception (finally)
@@ -86,8 +88,16 @@ app state pending = do
         talk conn
       disconnect client state = modifyMVar_ state (return . removeClient client)
 
+getPort :: IO (Int)
+getPort = do
+  args <- getArgs
+  case args of
+    port:_ -> return $ read port
+    _      -> return 8080
+
 main :: IO ()
 main = do
+  port <- getPort
   state <- newMVar newServerState
   forkIO $ broadcastMessages state
-  WS.runServer "0.0.0.0" 8080 $ app state
+  WS.runServer "0.0.0.0" port $ app state
