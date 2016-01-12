@@ -17,12 +17,12 @@ main :: IO ()
 main = do
   args <- getArgs
   case args of
-    channel:script:_ -> run channel script
+    channel:script:args -> run channel script args
     _ -> error "specify channel and script. example: twitch-app <channel> twitch-echo"
 
-run :: String -> String -> IO ()
-run channel script = do
-  proc <- createProcess (proc script []) {
+run :: String -> String -> [String] -> IO ()
+run channel script args = do
+  proc <- createProcess (proc script args) {
       std_in = CreatePipe
     , std_out = CreatePipe
   }
@@ -44,4 +44,4 @@ processActions name handle client = forever $ do
     Twitch.Log message -> putStrLn $ "<" ++ name ++ "> " ++ message
 
 test :: IO ()
-test = run "lirik" "twitch-echo"
+test = run "lirik" "twitch-echo" []
