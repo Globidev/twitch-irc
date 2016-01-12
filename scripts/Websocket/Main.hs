@@ -1,95 +1,93 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Main (main) where
 
 import Twitch
 
-import Control.Monad (forever, unless, forM_)
-import Control.Concurrent (forkIO, MVar, newMVar, modifyMVar_, readMVar)
+import Control.Monad (forever, forM_)
+import Control.Concurrent (forkIO, MVar, newMVar, readMVar, modifyMVar_)
 import Control.Exception (finally)
 
-import System.IO (hSetBuffering, BufferMode(..), stdout)
-
-import Data.Aeson
+import Data.Aeson (ToJSON, toJSON, (.=), object, encode)
 
 import qualified Network.WebSockets as WS
 
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.Text.Encoding as T
-
 data WSClient = WSClient
-  {
-    connection :: WS.Connection
+  { connection :: WS.Connection
   , uid        :: Int
   }
 
 data ServerState = ServerState
-  {
-    clients :: [WSClient]
-  , nextId  :: Int
+  { clients :: [WSClient]
+  , nextUid :: Int
   }
 
 data IRCMessage = IRCMessage
-  {
-    sender  :: String
+  { sender  :: String
   , content :: String
   } deriving Show
 
 instance ToJSON IRCMessage where
-  toJSON (IRCMessage sender content) =
-    object ["sender"  .= sender, "content" .= content ]
+  toJSON IRCMessage{..} = object [ "sender" .= sender
+                                 , "content" .= content
+                                 ]
 
 newServerState :: ServerState
-newServerState = ServerState [] 0
+newServerState = ServerState
+  { clients = []
+  , nextUid = 0
+  }
 
 newClient :: WS.Connection -> ServerState -> WSClient
-newClient conn state = WSClient conn (nextId state)
+newClient conn ServerState{..} = WSClient
+  { connection = conn
+  , uid        = nextUid
+  }
 
 addClient :: WSClient -> ServerState -> ServerState
-addClient client state = do
-  ServerState (client : clients state) (nextId state + 1)
+addClient client ServerState{..} = ServerState
+  { clients = (client : clients)
+  , nextUid = nextUid + 1
+  }
 
 removeClient :: WSClient -> ServerState -> ServerState
-removeClient client state = do
-  let filtered = filter ((/= uid client) . uid) (clients state)
-  ServerState filtered (nextId state)
+removeClient client ServerState{..} = ServerState
+  { clients = filter ((/= uid client) . uid) clients
+  , nextUid = nextUid
+  }
 
-broadcast :: ToJSON a => a -> ServerState -> IO ()
+--
+
+broadcastMessages :: MVar ServerState -> IO ()
+broadcastMessages state = forever $ do
+  Input _ message <- read <$> getLine
+  case message of
+    PrivateMessage _ sender content -> broadcast (IRCMessage sender content) state
+    _ -> return ()
+
+broadcast :: ToJSON a => a -> MVar ServerState -> IO ()
 broadcast message state = do
-  forM_ (clients state) $ \client ->
-    WS.sendTextData (connection client) (encode $ toJSON message)
+  ServerState clients _ <- readMVar state
+  forM_ clients $ \WSClient{..} ->
+    WS.sendTextData connection (encode $ toJSON message)
 
 app :: MVar ServerState -> WS.ServerApp
 app state pending = do
   conn <- WS.acceptRequest pending
   -- Add the new client
-  s <-readMVar state
-  let client = newClient conn s
-  modifyMVar_ state $ \s -> do
-    return $ addClient client s
+  client <- newClient conn <$> readMVar state
+  modifyMVar_ state (return . addClient client)
   -- Talk forever until closed
   (talk conn) `finally` (disconnect client state)
-
-  where
-  talk conn = do
-    msg <- WS.receiveDataMessage conn
-    talk conn
-  disconnect client state = do
-    modifyMVar_ state $ \s -> do
-      return $ removeClient client s
-
-broadcastMessages :: MVar ServerState -> IO ()
-broadcastMessages state = forever $ do
-  Input channel msg <- read <$> getLine
-  clients <- readMVar state
-  case msg of
-    PrivateMessage _ sender content -> broadcast (IRCMessage sender content) clients
-    _ -> return ()
+    where
+      talk conn = do
+        msg <- WS.receiveDataMessage conn
+        talk conn
+      disconnect client state = modifyMVar_ state (return . removeClient client)
 
 main :: IO ()
 main = do
-  hSetBuffering stdout NoBuffering
   state <- newMVar newServerState
   forkIO $ broadcastMessages state
   WS.runServer "0.0.0.0" 8080 $ app state
