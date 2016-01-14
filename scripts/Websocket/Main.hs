@@ -7,16 +7,21 @@ import Twitch
 
 import System.Environment (getArgs)
 
+import System.IO (hSetBuffering, BufferMode(..), stdout)
+
 import Control.Monad (forever, forM_)
 import Control.Concurrent (forkIO, MVar, newMVar, readMVar, modifyMVar_)
 import Control.Exception (finally)
 
 import Data.Aeson (ToJSON, toJSON, (.=), object, encode)
 
+import Data.ByteString.Char8 (unpack)
+
 import qualified Network.WebSockets as WS
 
 data WSClient = WSClient
   { connection :: WS.Connection
+  , channel    :: Channel
   , uid        :: Int
   }
 
@@ -43,9 +48,10 @@ newServerState = ServerState
   , nextUid = 0
   }
 
-newClient :: WS.Connection -> ServerState -> WSClient
-newClient conn ServerState{..} = WSClient
+newClient :: WS.Connection -> Channel -> ServerState -> WSClient
+newClient conn chan ServerState{..} = WSClient
   { connection = conn
+  , channel    = chan
   , uid        = nextUid
   }
 
@@ -67,22 +73,26 @@ broadcastMessages :: MVar ServerState -> IO ()
 broadcastMessages state = forever $ do
   Input message <- read <$> getLine
   case message of
-    PrivateMessage _ sender content tags ->
-      broadcast (IRCMessage sender content tags) state
+    PrivateMessage channel sender content tags ->
+      broadcast channel (IRCMessage sender content tags) state
     _ -> return ()
 
-broadcast :: ToJSON a => a -> MVar ServerState -> IO ()
-broadcast message state = do
+broadcast :: ToJSON a => Channel -> a -> MVar ServerState -> IO ()
+broadcast chan message state = do
   ServerState clients _ <- readMVar state
-  forM_ clients $ \WSClient{..} ->
+  let subscribed = filter ((== chan) . channel) clients
+  forM_ subscribed $ \WSClient{..} ->
     WS.sendTextData connection (encode $ toJSON message)
 
 app :: MVar ServerState -> WS.ServerApp
 app state pending = do
+  let channel = tail $ unpack $ WS.requestPath (WS.pendingRequest pending)
   conn <- WS.acceptRequest pending
   -- Add the new client
-  client <- newClient conn <$> readMVar state
+  client <- newClient conn channel <$> readMVar state
   modifyMVar_ state (return . addClient client)
+  -- Join the requestes channel
+  putStrLn $ show $ Output $ Join channel
   -- Talk forever until closed
   (talk conn) `finally` (disconnect client state)
     where
@@ -100,6 +110,7 @@ getPort = do
 
 main :: IO ()
 main = do
+  hSetBuffering stdout NoBuffering
   port <- getPort
   state <- newMVar newServerState
   forkIO $ broadcastMessages state

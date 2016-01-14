@@ -63,7 +63,7 @@ executable twitch-websocket
                      , websockets
                      , text
                      , aeson
-                     , stm
+                     , bytestring
   default-language:    Haskell2010
 
 test-suite twitch-hs-test
