@@ -65,7 +65,7 @@ removeClient client ServerState{..} = ServerState
 
 broadcastMessages :: MVar ServerState -> IO ()
 broadcastMessages state = forever $ do
-  Input _ message <- read <$> getLine
+  Input message <- read <$> getLine
   case message of
     PrivateMessage _ sender content tags ->
       broadcast (IRCMessage sender content tags) state

@@ -5,6 +5,7 @@ module Twitch.Irc.Client(
 , joinChannel
 , sendMessage
 , sendPong
+, processMessages
 ) where
 
 import Network (connectTo, PortID(PortNumber))
@@ -35,12 +36,6 @@ authenticate client nick pass = do
 joinChannel :: Client -> String -> Handle -> IO ()
 joinChannel client channel handle = do
   sendCommand client "JOIN" ("#" ++ channel)
-  forever $ do
-    line <- hGetLine client
-    case parseMessage line of
-      Right (Ping pong) -> sendPong client pong
-      Right msg -> hPrint handle (Input channel msg)
-      Left _ -> hPrint stderr ("Error parsing:" ++ line)
 
 sendMessage :: Client -> String -> String -> IO ()
 sendMessage client channel msg = do
@@ -49,3 +44,11 @@ sendMessage client channel msg = do
 
 sendPong :: Client -> String -> IO ()
 sendPong client msg = sendMessage client "PONG" msg
+
+processMessages :: Client -> Handle -> IO ()
+processMessages client handle = forever $ do
+  line <- hGetLine client
+  case parseMessage line of
+    Right (Ping pong) -> sendPong client pong
+    Right msg -> hPrint handle (Input msg)
+    Left _ -> hPrint stderr ("Error parsing:" ++ line)

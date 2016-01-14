@@ -38,9 +38,9 @@ main = do
   log $ "Selected window: " ++ show window
 
   forever $ do
-    Input channel msg <- read <$> getLine
+    Input msg <- read <$> getLine
     case msg of
-      PrivateMessage _ sender content _ -> do
+      PrivateMessage channel sender content _ -> do
         let match = Map.lookup content (Map.fromList inputs)
         case match of
           Just keyCodes -> X.sendInputs display window root keyCodes

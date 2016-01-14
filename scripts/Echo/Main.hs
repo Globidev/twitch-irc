@@ -11,7 +11,7 @@ main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering
   forever $ do
-    Input channel msg <- read <$> getLine
+    Input msg <- read <$> getLine
     case msg of
       PrivateMessage _ sender content _ -> log $ "[MSG] " ++ sender ++ ": " ++ content
       JoinMessage _ user                -> log $ "[JOIN] " ++ user

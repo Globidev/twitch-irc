@@ -29,16 +29,15 @@ run channel script args = do
   print $ "Script started: " ++ script
   hSetBuffering hWriteTo NoBuffering
   client <- Twitch.connect
-  forkIO $ processActions script hReadFrom client
+  forkIO $ processActions script hReadFrom hWriteTo client
   Twitch.authenticate client nick pass
   Twitch.joinChannel client channel hWriteTo
+  Twitch.processMessages client hWriteTo
 
-processActions :: String -> Handle -> Twitch.Client -> IO ()
-processActions name handle client = forever $ do
-  Twitch.Output action <- read <$> hGetLine handle
+processActions :: String -> Handle -> Handle -> Twitch.Client -> IO ()
+processActions name handleIn handleOut client = forever $ do
+  Twitch.Output action <- read <$> hGetLine handleIn
   case action of
     Twitch.SendMessage channel message -> Twitch.sendMessage client channel message
     Twitch.Log message -> putStrLn $ "<" ++ name ++ "> " ++ message
 
-test :: IO ()
-test = run "lirik" "twitch-echo" []

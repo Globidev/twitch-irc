@@ -6,7 +6,7 @@ import Data.Map (Map)
 
 import System.IO (Handle)
 
-data Input = Input Channel Message deriving (Show, Read, Eq)
+data Input = Input Message deriving (Show, Read, Eq)
 data Output = Output Action deriving (Show, Read, Eq)
 
 data Message
