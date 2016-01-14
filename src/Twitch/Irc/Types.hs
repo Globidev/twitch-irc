@@ -20,7 +20,8 @@ data Message
 
 data Action
   = SendMessage Channel String
-  | Log String deriving (Show, Read, Eq)
+  | Log String
+  | Join Channel deriving (Show, Read, Eq)
 
 type Channel = String
 type User = String

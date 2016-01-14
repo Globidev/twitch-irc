@@ -39,5 +39,5 @@ processActions name handleIn handleOut client = forever $ do
   Twitch.Output action <- read <$> hGetLine handleIn
   case action of
     Twitch.SendMessage channel message -> Twitch.sendMessage client channel message
+    Twitch.Join channel -> Twitch.joinChannel client channel handleOut
     Twitch.Log message -> putStrLn $ "<" ++ name ++ "> " ++ message
-
