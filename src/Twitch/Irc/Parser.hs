@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module Twitch.Irc.Parser(
   parseMessage
 , Message (..)
@@ -8,13 +6,9 @@ module Twitch.Irc.Parser(
 import Text.Parsec
 import Text.ParserCombinators.Parsec (Parser)
 
-import Data.Typeable.Internal (Typeable)
-
 import Twitch.Irc.Constants as Twitch
 import Twitch.Irc.Types
 
-import Debug.Trace (trace)
-import Data.Maybe
 import Data.Map (fromList)
 
 rest :: Parser String
