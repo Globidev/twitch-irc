@@ -40,13 +40,13 @@ commandPrefix = do
 privmsgTag :: Parser (String, String)
 privmsgTag = do
   key <- manyTill anyChar (char '=')
-  value <- manyTill anyChar (char ';' <|> char ' ')
+  value <- manyTill anyChar (char ';' <|> (lookAhead $ char ' '))
   return (key, value)
 
 privmsgTags :: Parser PrivateMessageTags
 privmsgTags = do
   char '@'
-  tags <- many (try privmsgTag)
+  tags <- manyTill (try privmsgTag) (char ' ')
   return $ fromList tags
 
 privateMessage :: Parser Message
