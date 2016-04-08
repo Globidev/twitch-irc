@@ -4,12 +4,18 @@ module Twitch.Irc.Parser(
 ) where
 
 import Text.Parsec
-import Text.ParserCombinators.Parsec (Parser)
+import Text.Parsec.Text (Parser)
 
 import Twitch.Irc.Constants as Twitch
 import Twitch.Irc.Types
 
 import Data.Map (fromList)
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8)
+import Data.ByteString.Char8 (pack)
+
+utf8String :: String -> Text
+utf8String = decodeUtf8 . pack
 
 rest :: Parser String
 rest = manyTill anyChar eof
@@ -51,7 +57,7 @@ privateMessage = do
   chan <- channel
   space >> char ':'
   content <- rest
-  return $ PrivateMessage chan user (init content) mbTags
+  return $ PrivateMessage chan user (utf8String $ init content) mbTags
 
 joinMessage :: Parser Message
 joinMessage = do
@@ -77,7 +83,7 @@ serverMessage = do
     Just _ -> space >> char ':'
     Nothing -> char ':'
   content <- rest
-  return $ ServerMessage mbChan (read code) content
+  return $ ServerMessage mbChan (read code) (utf8String content)
 
 jtvCommand :: Parser Message
 jtvCommand = do
@@ -87,7 +93,7 @@ jtvCommand = do
   cmd <- many1 upper
   space
   content <- rest
-  return $ JtvCommand cmd content
+  return $ JtvCommand cmd (utf8String content)
 
 jtvMode :: Parser Message
 jtvMode = do
@@ -104,7 +110,7 @@ pingMessage :: Parser Message
 pingMessage = do
   string "PING" >> space
   message <- rest
-  return $ Ping message
+  return $ Ping (utf8String message)
 
 ircMessage :: Parser Message
 ircMessage =  try privateMessage
@@ -115,5 +121,5 @@ ircMessage =  try privateMessage
           <|> try jtvMode
           <|> pingMessage
 
-parseMessage :: String -> Either ParseError Message
+parseMessage :: Text -> Either ParseError Message
 parseMessage = parse ircMessage ""

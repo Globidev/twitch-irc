@@ -10,6 +10,7 @@ import qualified Data.Map as Map
 
 import Twitch
 import qualified X11 as X
+import qualified Data.Text as T
 
 inputs :: [(String, [X.KeyCode])]
 inputs =
@@ -41,20 +42,21 @@ main = do
     Input msg <- read <$> getLine
     case msg of
       PrivateMessage channel sender content _ -> do
-        let match = Map.lookup content (Map.fromList inputs)
+        let unpackedContent = T.unpack content
+        let match = Map.lookup unpackedContent (Map.fromList inputs)
         case match of
           Just keyCodes -> X.sendInputs display window root keyCodes
-          Nothing       -> checkCommands channel content
+          Nothing       -> checkCommands channel unpackedContent
       _ -> return ()
 
   X.closeDisplay display
   return ()
 
 log :: String -> IO ()
-log msg = putStrLn $ show $ Output $ Log msg
+log msg = putStrLn $ show $ Output $ Log (T.pack msg)
 
 chat :: String -> String -> IO ()
-chat channel msg = putStrLn $ show $ Output $ SendMessage channel msg
+chat channel msg = putStrLn $ show $ Output $ SendMessage channel (T.pack msg)
 
 checkCommands :: String -> String -> IO ()
 checkCommands channel message =

@@ -18,6 +18,7 @@ import Data.Aeson (ToJSON, toJSON, (.=), object, encode)
 import Data.ByteString.Char8 (unpack)
 
 import qualified Network.WebSockets as WS
+import qualified Data.Text as T
 
 data WSClient = WSClient
   { connection :: WS.Connection
@@ -32,7 +33,7 @@ data ServerState = ServerState
 
 data IRCMessage = IRCMessage
   { sender  :: String
-  , content :: String
+  , content :: T.Text
   , tags    :: Maybe PrivateMessageTags
   } deriving Show
 

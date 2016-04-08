@@ -2,10 +2,15 @@ module Main (main) where
 
 import System.Environment (getArgs)
 import System.Process
-import System.IO (Handle, hSetBuffering, BufferMode(..), hGetLine)
+import System.IO (Handle, hSetBuffering, BufferMode(..), hGetLine, stdout)
 
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
+
+import Data.Monoid (mappend)
+import Data.Text.IO (hPutStrLn)
+
+import qualified Data.Text as T
 
 import qualified Twitch
 
@@ -40,4 +45,4 @@ processActions name handleIn handleOut client = forever $ do
   case action of
     Twitch.SendMessage channel message -> Twitch.sendMessage client channel message
     Twitch.Join channel -> Twitch.joinChannel client channel handleOut
-    Twitch.Log message -> putStrLn $ "<" ++ name ++ "> " ++ message
+    Twitch.Log message -> hPutStrLn stdout $ (T.pack ("<" ++ name ++ "> ")) `mappend` message

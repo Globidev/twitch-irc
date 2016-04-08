@@ -9,13 +9,18 @@ module Twitch.Irc.Client(
 ) where
 
 import Network (connectTo, PortID(PortNumber))
-import System.IO (Handle, hSetBuffering, BufferMode(NoBuffering), hGetLine)
+import System.IO (
+  Handle, hSetBuffering, BufferMode(NoBuffering), stderr, hPrint)
 import Text.Printf (hPrintf)
+import Data.Text.IO (hGetLine, hPutStrLn)
+import Data.Monoid (mappend)
 import Control.Monad (forever)
+
 import Twitch.Irc.Parser
 import Twitch.Irc.Constants as Twitch
 import Twitch.Irc.Types
-import System.IO
+
+import qualified Data.Text as T
 
 
 connect :: IO Client
@@ -37,12 +42,12 @@ joinChannel :: Client -> String -> Handle -> IO ()
 joinChannel client channel handle = do
   sendCommand client "JOIN" ("#" ++ channel)
 
-sendMessage :: Client -> String -> String -> IO ()
+sendMessage :: Client -> String -> T.Text -> IO ()
 sendMessage client channel msg = do
-  let formatted = "#" ++ channel ++ " :" ++ msg
+  let formatted = "#" ++ channel ++ " :" ++ (T.unpack msg)
   sendCommand client "PRIVMSG" formatted
 
-sendPong :: Client -> String -> IO ()
+sendPong :: Client -> T.Text -> IO ()
 sendPong client msg = sendMessage client "PONG" msg
 
 processMessages :: Client -> Handle -> IO ()
@@ -51,4 +56,4 @@ processMessages client handle = forever $ do
   case parseMessage line of
     Right (Ping pong) -> sendPong client pong
     Right msg -> hPrint handle (Input msg)
-    Left _ -> hPrint stderr ("Error parsing:" ++ line)
+    Left _ -> hPutStrLn stderr ((T.pack "Error parsing:") `mappend` line)
